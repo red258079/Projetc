@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Website Quản Lý Dự Án CNTT - Hệ thống quản lý dự án chuyên nghiệp với đầy đủ chức năng: bảng công việc, ước lượng Expert, chi phí, lịch trình và Gantt chart.">
+  <title>ProjectManager Pro - Quản Lý Dự Án CNTT</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar" id="navbar" style="display:none">
+  <div class="navbar-brand" onclick="App.navigateDashboard()">
+    <div class="logo-icon">⚡</div>
+    <span class="gradient-text">ProjectManager</span><span class="text-muted" style="font-weight:400;font-size:1rem">Pro</span>
+  </div>
+
+  <div class="navbar-right">
+    <!-- Back to Dashboard button (hidden on dashboard) -->
+    <button id="btn-back-dashboard" class="btn btn-secondary btn-sm" onclick="App.navigateDashboard()" style="display:none">
+      🏠 Trang chủ
+    </button>
+
+    <div class="dropdown">
+      <button class="btn btn-secondary" onclick="this.closest('.dropdown').classList.toggle('open')" style="gap:10px">
+        <div class="user-avatar" style="width:28px;height:28px;font-size:0.75rem" id="user-avatar">?</div>
+        <span id="user-name-display">Người dùng</span>
+        <span>▾</span>
+      </button>
+      <div class="dropdown-menu">
+        <div class="dropdown-item" style="cursor:default;opacity:0.6;font-size:0.8rem">Đăng nhập với:</div>
+        <div class="dropdown-item" id="current-username-display" style="font-weight:600"></div>
+        <div class="divider" style="margin:4px 0"></div>
+        <button class="dropdown-item danger" onclick="App.logout()">🚪 Đăng xuất</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ── AUTH PAGE ── -->
+<div id="auth-page" class="page auth-page active">
+  <div class="auth-container">
+    <div class="auth-logo">
+      <div class="logo-circle">⚡</div>
+      <h1 class="gradient-text" style="font-size:2rem">ProjectManager Pro</h1>
+      <p class="text-muted">Hệ thống quản lý dự án CNTT chuyên nghiệp</p>
+    </div>
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-tab="login" onclick="Auth.switchTab('login')">🔑 Đăng Nhập</button>
+        <button class="auth-tab" data-tab="register" onclick="Auth.switchTab('register')">✨ Đăng Ký</button>
+      </div>
+      <div id="auth-form-container"></div>
+    </div>
+    <p class="text-center text-xs text-muted" style="margin-top:24px">
+      Website Quản Lý Dự Án CNTT · Nhóm Nguyễn Hữu Tình
+    </p>
+  </div>
+</div>
+
+<!-- ── DASHBOARD PAGE ── -->
+<div id="dashboard-page" class="page">
+  <div style="flex:1;padding:32px;overflow-y:auto" id="dashboard-content">
+    <!-- Rendered by Dashboard.render() -->
+  </div>
+</div>
+
+<!-- ── PROJECT PAGE ── -->
+<div id="project-page" class="page">
+  <div class="layout-with-sidebar" style="flex:1">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div style="padding:0 12px 16px">
+        <div class="text-xs text-muted mb-1">DỰ ÁN HIỆN TẠI</div>
+        <div id="project-name-display" class="font-bold" style="font-size:0.9rem;line-height:1.4">—</div>
+        <div id="project-code-display" class="font-mono text-purple text-xs mt-1">—</div>
+      </div>
+
+      <div class="divider" style="margin:0 0 8px"></div>
+
+      <div class="sidebar-section-title">Tổng quan</div>
+      <button class="sidebar-link" data-section="overview" onclick="App.navigateSection('overview')">
+        <span class="icon">🏠</span> Tổng quan dự án
+      </button>
+
+      <div class="sidebar-section-title">Chức năng</div>
+      <button class="sidebar-link" data-section="tasks" onclick="App.navigateSection('tasks')">
+        <span class="icon">📋</span> Bảng công việc
+      </button>
+      <button class="sidebar-link" data-section="estimation" onclick="App.navigateSection('estimation')">
+        <span class="icon">⏱️</span> Ước lượng Expert
+      </button>
+      <button class="sidebar-link" data-section="cost" onclick="App.navigateSection('cost')">
+        <span class="icon">💰</span> Ước lượng chi phí
+      </button>
+      <button class="sidebar-link" data-section="schedule" onclick="App.navigateSection('schedule')">
+        <span class="icon">🗓️</span> Lịch trình dự án
+      </button>
+      <button class="sidebar-link" data-section="gantt" onclick="App.navigateSection('gantt')">
+        <span class="icon">📊</span> Lịch trình công việc
+      </button>
+      <button class="sidebar-link" data-section="assignment" onclick="App.navigateSection('assignment')">
+        <span class="icon">👥</span> Phân công công việc
+      </button>
+
+      <div class="divider" style="margin-top:auto"></div>
+      <button class="sidebar-link" onclick="App.navigateDashboard()" style="color:var(--text-muted)">
+        <span class="icon">🏠</span> Trang chủ
+      </button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="section-content">
+      <!-- Rendered dynamically -->
+    </main>
+  </div>
+</div>
+
+<!-- ── MODAL ── -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title" id="modal-title">Modal Title</h3>
+      <button class="modal-close" onclick="App.closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body">
+      <!-- Dynamic content -->
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ── SCRIPTS ── -->
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/tasks.js"></script>
+<script src="js/estimation.js"></script>
+<script src="js/cost.js"></script>
+<script src="js/schedule.js"></script>
+<script src="js/assignment.js"></script>
+
+<script>
+  // Initialize app when DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    App.init();
+
+    // Show/hide back button based on page
+    const observer = new MutationObserver(() => {
+      const projPage = document.getElementById('project-page');
+      const backBtn = document.getElementById('btn-back-dashboard');
+      if (backBtn) {
+        backBtn.style.display = projPage?.classList.contains('active') ? 'flex' : 'none';
+      }
+    });
+
+    observer.observe(document.getElementById('app') || document.body, {
+      childList: true, subtree: true, attributes: true
+    });
+  });
+</script>
+
+<div id="app"></div>
+
+</body>
+</html>
