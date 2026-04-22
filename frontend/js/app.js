@@ -371,7 +371,7 @@ const Dashboard = {
         <div class="project-stats">
           <div class="project-stat"><div class="value">${totalTasks}</div><div class="label">Công việc</div></div>
           <div class="project-stat"><div class="value">${doneTasks}</div><div class="label">Hoàn thành</div></div>
-          <div class="project-stat"><div class="value">${(p.member_count||0)+1}</div><div class="label">Thành viên</div></div>
+          <div class="project-stat"><div class="value">${p.member_count || 0}</div><div class="label">Thành viên</div></div>
         </div>
         <div class="divider"></div>
         <div class="flex items-center justify-between text-xs text-muted">
