@@ -845,6 +845,61 @@ textarea.form-control { resize: vertical; min-height: 100px; }
   text-align: center;
 }
 
+.cost-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.cost-table th,
+.cost-table td {
+  box-sizing: border-box;
+  padding: 12px;
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cost-table th:nth-child(1),
+.cost-table td:nth-child(1) {
+  width: 56px;
+  text-align: center;
+}
+
+.cost-table th:nth-child(2),
+.cost-table td:nth-child(2) {
+  width: 260px;
+  text-align: left;
+}
+
+.cost-table th:nth-child(3),
+.cost-table td:nth-child(3) {
+  width: 110px;
+  text-align: left;
+}
+
+.cost-table th:nth-child(4),
+.cost-table td:nth-child(4),
+.cost-table th:nth-child(5),
+.cost-table td:nth-child(5),
+.cost-table th:nth-child(6),
+.cost-table td:nth-child(6) {
+  width: 110px;
+  text-align: right;
+}
+
+.cost-table th:nth-child(7),
+.cost-table td:nth-child(7) {
+  width: auto;
+  text-align: left;
+}
+
+.cost-table th:nth-child(8),
+.cost-table td:nth-child(8) {
+  width: 92px;
+  text-align: center;
+}
+
 /* ── Gantt Chart ── */
 .gantt-container {
   overflow-x: auto;

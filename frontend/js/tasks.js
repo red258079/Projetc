@@ -49,17 +49,18 @@ const TaskBoard = {
   },
 
   renderKanban(projectCode, container) {
-    const tasks = this._tasks.filter(t => !t.parent_id);
+    const allTasks = this._tasks;
     const columns = [
       { id: 'todo', label: 'Chưa làm', color: '#64748b', icon: '⬜' },
       { id: 'inprogress', label: 'Đang làm', color: '#2563eb', icon: '🔵' },
       { id: 'review', label: 'Đang review', color: '#f59e0b', icon: '🟡' },
       { id: 'done', label: 'Hoàn thành', color: '#10b981', icon: '✅' }
     ];
+    // Tất cả task (cả cha lẫn con) hiện đúng cột theo status của chính nó
     container.innerHTML = `
       <div class="kanban-board">
         ${columns.map(col => {
-          const colTasks = tasks.filter(t => t.status === col.id);
+          const colTasks = allTasks.filter(t => t.status === col.id);
           return `
             <div class="kanban-column"
               ondragover="TaskBoard.onDragOver(event)"
@@ -70,7 +71,7 @@ const TaskBoard = {
                 <div class="kanban-title"><div class="kanban-dot" style="background:${col.color}"></div>${col.icon} ${col.label}</div>
                 <span class="kanban-count">${colTasks.length}</span>
               </div>
-              ${colTasks.map(task => this.renderTaskCard(task, projectCode)).join('')}
+              ${colTasks.map(task => this.renderTaskCard(task, projectCode, allTasks)).join('')}
               <button class="btn btn-secondary btn-sm w-full" style="margin-top:8px;opacity:0.6" onclick="TaskBoard.showAddModal('${col.id}')">+ Thêm</button>
             </div>
           `;
@@ -79,21 +80,31 @@ const TaskBoard = {
     `;
   },
 
-  renderTaskCard(task, projectCode) {
+  renderTaskCard(task, projectCode, allTasks = []) {
     const isOverdue = task.end_date && App.isOverdue(task.end_date) && task.status !== 'done';
     const priorityColors = { high: '#ef4444', medium: '#f59e0b', low: '#10b981' };
     const assignee = task.assignee || '';
     const initials = assignee ? assignee.split(' ').map(w => w[0]).join('').slice(0, 2) : '?';
+    // Nếu là công việc con, hiện nhãn cha
+    const parentTask = task.parent_id ? allTasks.find(t => t.id === task.parent_id) : null;
+    const parentLabel = parentTask ? `<div style="display:flex;align-items:center;gap:4px;margin-bottom:6px">
+      <span style="font-size:0.65rem;background:rgba(124,58,237,0.2);color:#a78bfa;padding:2px 8px;border-radius:20px">↳ Con của: ${parentTask.title}</span>
+    </div>` : '';
+    // Nếu là cha, hiện số công việc con
+    const childCount = allTasks.filter(t => t.parent_id === task.id).length;
+    const childBadge = childCount > 0 ? `<span style="font-size:0.65rem;background:rgba(255,255,255,0.08);color:var(--text-muted);padding:2px 7px;border-radius:20px;margin-left:6px">📌 ${childCount} con</span>` : '';
     return `
       <div class="task-card" draggable="true"
         ondragstart="TaskBoard.onDragStart(event, '${task.id}')"
         ondragend="TaskBoard.onDragEnd(event)"
         onclick="TaskBoard.showEditModal(${task.id},'${projectCode}',event)"
         style="cursor:pointer">
+        ${parentLabel}
         <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
-          <div style="display:flex;align-items:center;gap:6px">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
             <div class="task-priority" style="background:${priorityColors[task.priority]}"></div>
             <div class="task-title" style="margin:0;pointer-events:none">${task.title}</div>
+            ${childBadge}
           </div>
           <button class="btn btn-icon btn-secondary btn-sm" style="padding:3px 6px;font-size:0.7rem;flex-shrink:0"
             onclick="TaskBoard.showEditModal(${task.id},'${projectCode}',event)">⋮</button>

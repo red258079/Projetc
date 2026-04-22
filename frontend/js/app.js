@@ -13,15 +13,44 @@ const API = {
   },
 
   async request(method, path, body) {
+    const url = API_BASE + path;
     const opts = {
       method,
       headers: { 'Content-Type': 'application/json' }
     };
     if (this.token) opts.headers['Authorization'] = 'Bearer ' + this.token;
     if (body) opts.body = JSON.stringify(body);
-    const res = await fetch(API_BASE + path, opts);
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Lỗi server');
+
+    let res;
+    try {
+      res = await fetch(url, opts);
+    } catch (networkErr) {
+      console.error(`[API] Network error | ${method} ${url}`, networkErr);
+      throw new Error('Không kết nối được server. Kiểm tra backend đã chạy chưa?');
+    }
+
+    const rawText = await res.text();
+
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch {
+      console.error(
+        `[API] Non-JSON response | ${method} ${url}\n` +
+        `  Status: ${res.status} ${res.statusText}\n` +
+        `  Response (300 chars): ${rawText.substring(0, 300)}`
+      );
+      throw new Error(`Lỗi server (${res.status}): API không tồn tại hoặc server bị lỗi.`);
+    }
+
+    if (!res.ok) {
+      console.error(
+        `[API] Error | ${method} ${url} → ${res.status}\n  ${data.error || JSON.stringify(data)}`
+      );
+      throw new Error(data.error || `Lỗi server (${res.status})`);
+    }
+
+    console.log(`[API] OK | ${method} ${path} → ${res.status}`);
     return data;
   },
 
@@ -361,10 +390,16 @@ const Dashboard = {
     const progress = totalTasks > 0 ? Math.round(doneTasks / totalTasks * 100) : 0;
     const daysLeft = App.getDaysLeft(p.end_date);
     const isOverdue = daysLeft !== null && daysLeft < 0;
+    const isManager = App.state.user?.id === p.manager_id;
     return `
-      <div class="project-card" onclick="App.navigateProject('${p.code}')">
+      <div class="project-card" onclick="App.navigateProject('${p.code}')" style="position:relative">
+        ${isManager ? `
+          <button class="btn btn-sm btn-danger btn-icon" style="position:absolute;top:12px;right:12px;z-index:2;padding:4px 8px;font-size:0.75rem"
+            onclick="event.stopPropagation();Dashboard.deleteProject('${p.code}','${p.name.replace(/'/g,"&apos;")}')"
+            title="Xóa dự án">🗑️</button>
+        ` : ''}
         <div class="project-code">🔑 ${p.code}</div>
-        <h4 style="margin-bottom:8px">${p.name}</h4>
+        <h4 style="margin-bottom:8px;padding-right:${isManager?'36px':'0'}">${p.name}</h4>
         <p class="text-sm text-muted" style="margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${p.description || 'Không có mô tả'}</p>
         <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
         <div class="flex items-center justify-between text-xs text-muted mb-2"><span>Tiến độ</span><span>${progress}%</span></div>
@@ -444,6 +479,15 @@ const Dashboard = {
       await API.post('/projects/join', { code });
       App.closeModal();
       App.showToast('Tham gia dự án thành công!', 'success');
+      await this.render();
+    } catch (err) { App.showToast(err.message, 'error'); }
+  },
+
+  async deleteProject(code, name) {
+    if (!confirm(`⚠️ Bạn có chắc muốn XÓA dự án "${name}"?\n\nThao tác này sẽ xóa TOÀN BỘ:\n- Tất cả công việc\n- Tất cả thành viên\n- Lịch trình, chi phí, ước lượng...\n\nKHÔNG THỂ HOÀN TÁC!`)) return;
+    try {
+      await API.delete('/projects/' + code);
+      App.showToast('Đã xóa dự án!', 'success');
       await this.render();
     } catch (err) { App.showToast(err.message, 'error'); }
   }

@@ -51,10 +51,6 @@ const Estimation = {
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon yellow">±</div>
-          <div class="stat-info"><div class="value">${totalSD.toFixed(2)}</div><div class="label">Tổng SD</div></div>
-        </div>
-        <div class="stat-card">
           <div class="stat-icon green">🎯</div>
           <div class="stat-info">
             <div class="value text-sm">${ci95Low.toFixed(1)} – ${ci95High.toFixed(1)}</div>
@@ -87,8 +83,6 @@ const Estimation = {
                 <th title="Most Likely - Khả năng cao nhất">M (Khả năng)</th>
                 <th title="Pessimistic - Bi quan nhất">P (Bi quan)</th>
                 <th title="E = (O+4M+P)/6">E (Kỳ vọng)</th>
-                <th title="SD = (P-O)/6">SD</th>
-                <th title="Variance = SD²">Variance</th>
                 <th>Ghi chú</th>
                 <th>Thao tác</th>
               </tr>
@@ -103,8 +97,6 @@ const Estimation = {
                   <td style="color:var(--accent-cyan)">${item.mostLikely}</td>
                   <td style="color:var(--accent-red)">${item.pessimistic}</td>
                   <td class="result-highlight">${item.expected}</td>
-                  <td class="text-warning">${item.stdDev}</td>
-                  <td class="text-muted">${item.variance}</td>
                   <td class="text-left text-sm text-muted">${item.note || '—'}</td>
                   <td>
                     <div style="display:flex;gap:4px">
@@ -119,16 +111,13 @@ const Estimation = {
               <tr>
                 <td colspan="6" class="text-left font-bold">TỔNG CỘNG</td>
                 <td class="result-highlight">${totalE.toFixed(2)}</td>
-                <td class="text-warning">${totalSD.toFixed(2)}</td>
-                <td class="text-muted">${totalVariance.toFixed(2)}</td>
                 <td colspan="2"></td>
               </tr>
               <tr>
                 <td colspan="6" class="text-left font-bold" style="color:var(--accent-green)">Khoảng tin cậy 95%</td>
-                <td colspan="4" class="result-highlight" style="text-align:left">
+                <td colspan="3" class="result-highlight" style="text-align:left">
                   [${ci95Low.toFixed(2)} ; ${ci95High.toFixed(2)}] ${items[0]?.unit || 'ngày'}
                 </td>
-                <td></td>
               </tr>
             </tfoot>
           </table>
@@ -175,8 +164,6 @@ const Estimation = {
       <div class="form-group"><label class="form-label">Đơn vị thời gian</label>
         <select id="est-unit" class="form-control">
           <option value="ngày">Ngày</option>
-          <option value="tuần">Tuần</option>
-          <option value="giờ">Giờ</option>
         </select>
       </div>
       <div style="background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:var(--radius);padding:16px;margin-bottom:20px">
@@ -199,10 +186,9 @@ const Estimation = {
       <!-- Live Preview -->
       <div id="est-preview" style="display:none;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);border-radius:var(--radius);padding:16px;margin-bottom:16px">
         <div class="text-sm font-bold text-purple mb-2">📊 Kết quả tính toán</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center">
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;text-align:center">
           <div><div class="font-mono font-bold text-purple" id="preview-e">—</div><div class="text-xs text-muted">E (kỳ vọng)</div></div>
           <div><div class="font-mono font-bold text-warning" id="preview-sd">—</div><div class="text-xs text-muted">SD (lệch chuẩn)</div></div>
-          <div><div class="font-mono font-bold text-muted" id="preview-var">—</div><div class="text-xs text-muted">Variance</div></div>
         </div>
       </div>
       <div class="form-group"><label class="form-label">Ghi chú</label>
@@ -260,9 +246,7 @@ const Estimation = {
       </div>
       <div class="form-group"><label class="form-label">Đơn vị</label>
         <select id="eest-unit" class="form-control">
-          <option value="ngày" ${item.unit==='ngày'?'selected':''}>Ngày</option>
-          <option value="tuần" ${item.unit==='tuần'?'selected':''}>Tuần</option>
-          <option value="giờ" ${item.unit==='giờ'?'selected':''}>Giờ</option>
+          <option value="ngày">Ngày</option>
         </select>
       </div>
       <div class="form-row">
@@ -329,7 +313,7 @@ const Estimation = {
             optimistic: Math.round(h*0.7*10)/10,
             mostLikely: h,
             pessimistic: Math.round(h*1.5*10)/10,
-            unit: 'giờ', note: 'Import từ bảng công việc'
+            unit: 'ngày', note: 'Import từ bảng công việc'
           });
           added++;
         }

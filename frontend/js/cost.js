@@ -4,6 +4,14 @@
 // ============================================================
 
 const CostEst = {
+  normalizeUnit(unit) {
+    const cleaned = (unit || '').trim();
+    if (!cleaned) return 'hạng mục';
+    const normalized = cleaned.toLowerCase();
+    if (normalized === 'lan' || normalized === 'lần') return 'hạng mục';
+    return cleaned;
+  },
+
   async render(projectCode) {
     if (!projectCode) return;
     document.getElementById('section-content').innerHTML = `<div class="loading-spinner"></div>`;
@@ -113,7 +121,7 @@ const CostEst = {
             <span class="text-sm text-muted font-mono ml-2">${App.formatCurrency(catTotals[k])}</span>
           </h4>
           <div style="overflow-x:auto">
-            <table class="wbs-table">
+            <table class="wbs-table cost-table">
               <thead>
                 <tr><th class="text-center">STT</th><th class="text-left">Tên khoản chi</th><th class="text-left">Đơn vị</th><th class="text-right">Số lượng</th><th class="text-right">Đơn giá</th><th class="text-right">Thành tiền</th><th class="text-left">Ghi chú</th><th class="text-center">Thao tác</th></tr>
               </thead>
@@ -122,7 +130,7 @@ const CostEst = {
                   <tr>
                     <td class="text-center text-muted">${i+1}</td>
                     <td class="text-left font-bold">${item.name}</td>
-                    <td class="text-left">${item.unit || '—'}</td>
+                    <td class="text-left">${this.normalizeUnit(item.unit)}</td>
                     <td class="text-right">${parseFloat(item.quantity).toLocaleString('vi-VN')}</td>
                     <td class="text-right font-mono">${App.formatCurrency(item.unit_price || item.unitPrice)}</td>
                     <td class="text-right font-bold font-mono" style="color:${cat.color}">${App.formatCurrency(item.total)}</td>
@@ -266,7 +274,7 @@ const CostEst = {
     try {
       await API.post('/projects/' + projectCode + '/costs', {
         category: document.getElementById('cost-cat')?.value,
-        name, unit: document.getElementById('cost-unit')?.value,
+        name, unit: this.normalizeUnit(document.getElementById('cost-unit')?.value),
         quantity: qty, unitPrice: price,
         note: document.getElementById('cost-note')?.value
       });
@@ -319,7 +327,7 @@ const CostEst = {
     try {
       await API.put('/projects/' + projectCode + '/costs/' + id, {
         category: document.getElementById('ecost-cat')?.value,
-        name, unit: document.getElementById('ecost-unit')?.value,
+        name, unit: this.normalizeUnit(document.getElementById('ecost-unit')?.value),
         quantity: parseFloat(document.getElementById('ecost-qty')?.value) || 0,
         unitPrice: parseFloat(document.getElementById('ecost-price')?.value) || 0,
         note: document.getElementById('ecost-note')?.value

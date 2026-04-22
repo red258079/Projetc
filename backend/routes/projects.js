@@ -151,6 +151,30 @@ router.put('/:code', auth, async (req, res) => {
   }
 });
 
+// DELETE /api/projects/:code - Xóa dự án (chỉ trưởng dự án)
+router.delete('/:code', auth, async (req, res) => {
+  try {
+    const [projects] = await db.query('SELECT * FROM projects WHERE code = ?', [req.params.code.toUpperCase()]);
+    if (!projects[0]) return res.status(404).json({ error: 'Dự án không tồn tại' });
+    if (projects[0].manager_id !== req.user.id)
+      return res.status(403).json({ error: 'Chỉ trưởng dự án mới được xóa' });
+
+    const projectId = projects[0].id;
+    // Xóa toàn bộ dữ liệu liên quan
+    await db.query('DELETE FROM tasks WHERE project_id = ?', [projectId]);
+    await db.query('DELETE FROM project_members WHERE project_id = ?', [projectId]);
+    await db.query('DELETE FROM milestones WHERE project_id = ?', [projectId]);
+    await db.query('DELETE FROM task_schedules WHERE project_id = ?', [projectId]);
+    await db.query('DELETE FROM expert_estimations WHERE project_id = ?', [projectId]);
+    await db.query('DELETE FROM cost_items WHERE project_id = ?', [projectId]);
+    await db.query('DELETE FROM project_settings WHERE project_id = ?', [projectId]);
+    await db.query('DELETE FROM projects WHERE id = ?', [projectId]);
+
+    res.json({ message: 'Đã xóa dự án thành công' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // GET /api/projects/:code/members - Danh sách thành viên
 router.get('/:code/members', auth, async (req, res) => {

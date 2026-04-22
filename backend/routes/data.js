@@ -4,6 +4,12 @@ const router = express.Router({ mergeParams: true });
 const db = require('../db');
 const auth = require('../middleware/auth');
 
+// Helper: parse JSON safely (tránh lỗi "Unexpected end of JSON input")
+function safeJsonParse(str, fallback = []) {
+  if (!str) return fallback;
+  try { return JSON.parse(str); } catch { return fallback; }
+}
+
 // Helper: get project by code with access check
 async function getProject(code, userId) {
   const [rows] = await db.query('SELECT * FROM projects WHERE code = ?', [code.toUpperCase()]);
@@ -309,7 +315,7 @@ router.get('/:code/schedules', auth, async (req, res) => {
     const [items] = await db.query('SELECT * FROM task_schedules WHERE project_id = ? ORDER BY start_date ASC', [project.id]);
     const mapped = items.map(i => ({
       ...i, taskName: i.task_name, isCritical: !!i.is_critical,
-      dependencies: i.dependencies ? JSON.parse(i.dependencies || '[]') : []
+      dependencies: safeJsonParse(i.dependencies)
     }));
     res.json(mapped);
   } catch (err) {
@@ -330,7 +336,7 @@ router.post('/:code/schedules', auth, async (req, res) => {
     );
     const [item] = await db.query('SELECT * FROM task_schedules WHERE id = ?', [result.insertId]);
     const i = item[0];
-    res.status(201).json({ ...i, taskName: i.task_name, isCritical: !!i.is_critical, dependencies: JSON.parse(i.dependencies || '[]') });
+    res.status(201).json({ ...i, taskName: i.task_name, isCritical: !!i.is_critical, dependencies: safeJsonParse(i.dependencies) });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
@@ -348,7 +354,7 @@ router.put('/:code/schedules/:id', auth, async (req, res) => {
     );
     const [item] = await db.query('SELECT * FROM task_schedules WHERE id = ?', [req.params.id]);
     const i = item[0];
-    res.json({ ...i, taskName: i.task_name, isCritical: !!i.is_critical, dependencies: JSON.parse(i.dependencies || '[]') });
+    res.json({ ...i, taskName: i.task_name, isCritical: !!i.is_critical, dependencies: safeJsonParse(i.dependencies) });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }

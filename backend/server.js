@@ -15,6 +15,21 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// ── Request Logger ──
+app.use((req, res, next) => {
+  const start = Date.now();
+  const { method, originalUrl } = req;
+  res.on('finish', () => {
+    const ms = Date.now() - start;
+    const status = res.statusCode;
+    if (originalUrl.startsWith('/api') && status >= 400) {
+      const color = status >= 500 ? '\x1b[31m' : '\x1b[33m'; // đỏ=500, vàng=400
+      console.log(`${color}[ERROR] ${method} ${originalUrl} → ${status} (${ms}ms)\x1b[0m`);
+    }
+  });
+  next();
+});
+
 // ── Serve static frontend ──
 app.use(express.static(path.join(__dirname, '../frontend')));
 
